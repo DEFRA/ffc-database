@@ -9,7 +9,7 @@ class Base {
     this.username = config.username
     this.password = config.password
     this.modelPath = config.modelPath
-    this.dbConfig = config.dbConfig
+    this.dbConfig = config
   }
 
   connect () {

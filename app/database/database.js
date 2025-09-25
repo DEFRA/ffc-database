@@ -1,9 +1,5 @@
 const Base = require('./base')
 
-class Database extends Base {
-  constructor (config) {
-    super(config)
-  }
-}
+class Database extends Base {}
 
 module.exports = Database
