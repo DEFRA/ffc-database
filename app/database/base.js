@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const { Sequelize, DataTypes } = require('sequelize')
+const { Sequelize, DataTypes, Op } = require('sequelize')
 const db = {}
 
 class Base {
@@ -31,6 +31,7 @@ class Base {
 
     db.sequelize = sequelize
     db.Sequelize = Sequelize
+    db.Op = Op
 
     return db
   }
