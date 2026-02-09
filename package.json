@@ -1,15 +1,21 @@
 {
   "name": "ffc-database",
   "version": "1.0.23",
-  "description": "Databas npm module for FCP services",
+  "description": "Database npm module for FCP services",
   "main": "index.js",
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0",
+    "test:lint": "eslint",
+    "test:lint:fix": "eslint --fix"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DEFRA/ffc-database.git"
   },
   "author": "Defra",
   "contributors": [
-    "John Barnard john.barnard.external@atos.net"
+    "John Barnard john.barnard.external@atos.net",
+    "Sam Plackett samuel.plackett@atos.net"
   ],
   "license": "OGL-UK-3.0",
   "bugs": {
@@ -22,6 +28,7 @@
     "sequelize": "6.31.1"
   },
   "devDependencies": {
-    "standard": "17.1.2"
+    "eslint": "9.39.2",
+    "neostandard": "0.12.2"
   }
 }
