@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --runInBand --forceExit",
+    "test:unit": "PORT=0 node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns=test/unit",
     "test:watch": "jest --coverage=false --onlyChanged --watch --runInBand",
     "test:lint": "eslint",
     "test:lint:fix": "eslint --fix"
