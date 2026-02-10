@@ -4,7 +4,8 @@
   "description": "Database npm module for FCP services",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "jest --runInBand --forceExit",
+    "test:watch": "jest --coverage=false --onlyChanged --watch --runInBand",
     "test:lint": "eslint",
     "test:lint:fix": "eslint --fix"
   },
@@ -29,6 +30,8 @@
   },
   "devDependencies": {
     "eslint": "9.39.2",
+    "jest": "^29.7.0",
+    "jest-junit": "^14.0.0",
     "neostandard": "0.12.2"
   }
 }
