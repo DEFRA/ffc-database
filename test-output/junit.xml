@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="11" failures="0" errors="0" time="0.63">
+  <testsuite name="Base" errors="0" failures="0" skipped="0" timestamp="2026-02-12T14:01:17" time="0.411" tests="6">
+    <testcase classname="Base constructor initializes all properties from config" name="Base constructor initializes all properties from config" time="0.004">
+    </testcase>
+    <testcase classname="Base connect creates Sequelize instance with correct parameters" name="Base connect creates Sequelize instance with correct parameters" time="0.016">
+    </testcase>
+    <testcase classname="Base connect loads valid model files and filters out invalid ones" name="Base connect loads valid model files and filters out invalid ones" time="0.013">
+    </testcase>
+    <testcase classname="Base connect skips associate on models without it" name="Base connect skips associate on models without it" time="0.022">
+    </testcase>
+    <testcase classname="Base connect returns db object with sequelize, Sequelize, and Op" name="Base connect returns db object with sequelize, Sequelize, and Op" time="0.017">
+    </testcase>
+    <testcase classname="Base connect throws error for invalid modelPath" name="Base connect throws error for invalid modelPath" time="0.007">
+    </testcase>
+  </testsuite>
+  <testsuite name="Database" errors="0" failures="0" skipped="0" timestamp="2026-02-12T14:01:17" time="0.066" tests="3">
+    <testcase classname="Database should extend Base" name="Database should extend Base" time="0">
+    </testcase>
+    <testcase classname="Database should inherit Base properties" name="Database should inherit Base properties" time="0">
+    </testcase>
+    <testcase classname="Database should inherit Base methods" name="Database should inherit Base methods" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="index" errors="0" failures="0" skipped="0" timestamp="2026-02-12T14:01:17" time="0.056" tests="1">
+    <testcase classname="index should export Database" name="index should export Database" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="app/database/index" errors="0" failures="0" skipped="0" timestamp="2026-02-12T14:01:17" time="0.052" tests="1">
+    <testcase classname="app/database/index should export Database" name="app/database/index should export Database" time="0">
+    </testcase>
+  </testsuite>
+</testsuites>
