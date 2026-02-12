@@ -1,116 +1,99 @@
+const fs = require('fs')
+const path = require('path')
+const os = require('os')
+const { Sequelize, DataTypes, Op } = require('sequelize')
 const Base = require('../../../app/database/base')
-const fs = require('node:fs')
-const path = require('node:path')
-const { Sequelize, Op } = require('sequelize')
 
-jest.mock('node:fs')
-jest.mock('node:path')
 jest.mock('sequelize')
-jest.mock('/models/user.js', () => jest.fn().mockReturnValue({ name: 'User' }), { virtual: true })
-jest.mock('/models/post.js', () => jest.fn().mockReturnValue({ name: 'Post' }), { virtual: true })
 
 describe('Base', () => {
+  let config
+  let baseInstance
+  let mockSequelize
+  let tempDir
+
   beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-models-'))
+    
+    fs.writeFileSync(
+      path.join(tempDir, 'model1.js'),
+      'module.exports = (sequelize, DataTypes) => ({ name: "Model1", associate: jest.fn() })'
+    )
+    fs.writeFileSync(
+      path.join(tempDir, 'model2.js'),
+      'module.exports = (sequelize, DataTypes) => ({ name: "Model2" })'
+    )
+    fs.writeFileSync(path.join(tempDir, 'index.js'), '')
+    fs.writeFileSync(path.join(tempDir, '.hidden.js'), '')
+    fs.writeFileSync(path.join(tempDir, 'readme.txt'), '')
+    
+    config = {
+      database: 'testdb',
+      username: 'user',
+      password: 'pass',
+      modelPath: tempDir,
+      dialect: 'sqlite'
+    }
+    baseInstance = new Base(config)
+
+    mockSequelize = { authenticate: jest.fn() }
+    Sequelize.mockImplementation(() => mockSequelize)
+  })
+
+  afterEach(() => {
+    fs.rmSync(tempDir, { recursive: true, force: true })
     jest.clearAllMocks()
   })
 
   describe('constructor', () => {
-    test('should store config properties', () => {
-      const config = {
-        database: 'testdb',
-        username: 'user',
-        password: 'pass',
-        modelPath: '/models',
-        host: 'localhost'
-      }
-
-      const base = new Base(config)
-
-      expect(base.database).toBe('testdb')
-      expect(base.username).toBe('user')
-      expect(base.password).toBe('pass')
-      expect(base.modelPath).toBe('/models')
-      expect(base.dbConfig).toEqual(config)
+    it('initializes all properties from config', () => {
+      expect(baseInstance.database).toBe(config.database)
+      expect(baseInstance.username).toBe(config.username)
+      expect(baseInstance.password).toBe(config.password)
+      expect(baseInstance.modelPath).toBe(config.modelPath)
+      expect(baseInstance.dbConfig).toBe(config)
     })
   })
 
   describe('connect', () => {
-    test('should create Sequelize instance with correct credentials', () => {
-      const config = {
-        database: 'testdb',
-        username: 'user',
-        password: 'pass',
-        modelPath: '/models',
-        host: 'localhost'
-      }
-      const base = new Base(config)
-
-      fs.readdirSync.mockReturnValue([])
-      const mockSequelizeInstance = {}
-      Sequelize.mockImplementation(() => mockSequelizeInstance)
-
-      base.connect()
-
-      expect(Sequelize).toHaveBeenCalledWith('testdb', 'user', 'pass', config)
+    it('creates Sequelize instance with correct parameters', () => {
+      baseInstance.connect()
+      expect(Sequelize).toHaveBeenCalledWith(
+        config.database,
+        config.username,
+        config.password,
+        config
+      )
     })
 
-    test('should filter files correctly - only .js files excluding index.js and hidden files', () => {
-      const config = {
-        database: 'testdb',
-        username: 'user',
-        password: 'pass',
-        modelPath: '/models'
-      }
-      const base = new Base(config)
-
-      const mockSequelizeInstance = {}
-      Sequelize.mockImplementation(() => mockSequelizeInstance)
-
-      // Mock fs.readdirSync to return mixed file types
-      fs.readdirSync.mockReturnValue(['user.js', '.hidden.js', 'index.js', 'post.js', 'readme.txt'])
-      path.join.mockImplementation((dir, file) => `${dir}/${file}`)
-
-      const result = base.connect()
-
-      expect(fs.readdirSync).toHaveBeenCalledWith('/models')
-      expect(result.User).toBeDefined()
-      expect(result.Post).toBeDefined()
+    it('loads valid model files and filters out invalid ones', () => {
+      const db = baseInstance.connect()
+      
+      expect(db.Model1).toBeDefined()
+      expect(db.Model2).toBeDefined()
+      expect(db.index).toBeUndefined()
+      expect(db.hidden).toBeUndefined()
+      expect(db.readme).toBeUndefined()
     })
 
-    test('should return db object with sequelize, Sequelize, and Op properties', () => {
-      const config = {
-        database: 'testdb',
-        username: 'user',
-        password: 'pass',
-        modelPath: '/models'
-      }
-      const base = new Base(config)
-
-      const mockSequelizeInstance = {}
-      Sequelize.mockImplementation(() => mockSequelizeInstance)
-      fs.readdirSync.mockReturnValue([])
-
-      const result = base.connect()
-
-      expect(result).toHaveProperty('sequelize', mockSequelizeInstance)
-      expect(result).toHaveProperty('Sequelize', Sequelize)
-      expect(result).toHaveProperty('Op', Op)
+    it('skips associate on models without it', () => {
+      const db = baseInstance.connect()
+      expect(db.Model2.associate).toBeUndefined()
     })
 
-    test('should handle empty model directory', () => {
-      const config = {
-        database: 'testdb',
-        username: 'user',
-        password: 'pass',
-        modelPath: '/models'
-      }
-      const base = new Base(config)
+    it('returns db object with sequelize, Sequelize, and Op', () => {
+      const db = baseInstance.connect()
+      
+      expect(db.sequelize).toBe(mockSequelize)
+      expect(db.Sequelize).toBe(Sequelize)
+      expect(db.Op).toBe(Op)
+    })
 
-      const mockSequelizeInstance = {}
-      Sequelize.mockImplementation(() => mockSequelizeInstance)
-      fs.readdirSync.mockReturnValue([])
-
-      expect(() => base.connect()).not.toThrow()
+    it('throws error for invalid modelPath', () => {
+      const badConfig = { ...config, modelPath: '/nonexistent/path' }
+      const badInstance = new Base(badConfig)
+      
+      expect(() => badInstance.connect()).toThrow()
     })
   })
 })
