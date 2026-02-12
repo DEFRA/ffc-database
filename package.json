@@ -3,13 +3,19 @@
   "version": "1.0.23",
   "description": "Databas npm module for FCP services",
   "main": "index.js",
+  "scripts": {
+    "test": "jest --runInBand --forceExit",
+    "test:unit": "PORT=0 node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns=test/unit",
+    "test:watch": "jest --coverage=false --onlyChanged --watch --runInBand"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DEFRA/ffc-database.git"
   },
   "author": "Defra",
   "contributors": [
-    "John Barnard john.barnard.external@atos.net"
+    "John Barnard john.barnard.external@atos.net",
+    "Leigh Godson leigh.godson@atos.net"
   ],
   "license": "OGL-UK-3.0",
   "bugs": {
@@ -22,6 +28,9 @@
     "sequelize": "6.31.1"
   },
   "devDependencies": {
+    "jest": "29.7.0",
+    "jest-junit": "14.0.0",
+    "neostandard": "0.12.2",
     "standard": "17.1.2"
   }
 }
