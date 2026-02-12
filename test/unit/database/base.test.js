@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const { Sequelize, DataTypes, Op } = require('sequelize')
+const { Sequelize, Op } = require('sequelize')
 const Base = require('../../../app/database/base')
 
 jest.mock('sequelize')
@@ -14,7 +14,7 @@ describe('Base', () => {
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-models-'))
-    
+
     fs.writeFileSync(
       path.join(tempDir, 'model1.js'),
       'module.exports = (sequelize, DataTypes) => ({ name: "Model1", associate: jest.fn() })'
@@ -26,7 +26,7 @@ describe('Base', () => {
     fs.writeFileSync(path.join(tempDir, 'index.js'), '')
     fs.writeFileSync(path.join(tempDir, '.hidden.js'), '')
     fs.writeFileSync(path.join(tempDir, 'readme.txt'), '')
-    
+
     config = {
       database: 'testdb',
       username: 'user',
@@ -46,7 +46,7 @@ describe('Base', () => {
   })
 
   describe('constructor', () => {
-    it('initializes all properties from config', () => {
+    test('initializes all properties from config', () => {
       expect(baseInstance.database).toBe(config.database)
       expect(baseInstance.username).toBe(config.username)
       expect(baseInstance.password).toBe(config.password)
@@ -56,7 +56,7 @@ describe('Base', () => {
   })
 
   describe('connect', () => {
-    it('creates Sequelize instance with correct parameters', () => {
+    test('creates Sequelize instance with correct parameters', () => {
       baseInstance.connect()
       expect(Sequelize).toHaveBeenCalledWith(
         config.database,
@@ -66,9 +66,9 @@ describe('Base', () => {
       )
     })
 
-    it('loads valid model files and filters out invalid ones', () => {
+    test('loads valid model files and filters out invalid ones', () => {
       const db = baseInstance.connect()
-      
+
       expect(db.Model1).toBeDefined()
       expect(db.Model2).toBeDefined()
       expect(db.index).toBeUndefined()
@@ -76,23 +76,23 @@ describe('Base', () => {
       expect(db.readme).toBeUndefined()
     })
 
-    it('skips associate on models without it', () => {
+    test('skips associate on models without it', () => {
       const db = baseInstance.connect()
       expect(db.Model2.associate).toBeUndefined()
     })
 
-    it('returns db object with sequelize, Sequelize, and Op', () => {
+    test('returns db object with sequelize, Sequelize, and Op', () => {
       const db = baseInstance.connect()
-      
+
       expect(db.sequelize).toBe(mockSequelize)
       expect(db.Sequelize).toBe(Sequelize)
       expect(db.Op).toBe(Op)
     })
 
-    it('throws error for invalid modelPath', () => {
+    test('throws error for invalid modelPath', () => {
       const badConfig = { ...config, modelPath: '/nonexistent/path' }
       const badInstance = new Base(badConfig)
-      
+
       expect(() => badInstance.connect()).toThrow()
     })
   })
