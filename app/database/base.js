@@ -1,7 +1,6 @@
 const knex = require('knex')
-const { DefaultAzureCredential, getBearerTokenProvider } = require('@azure/identity')
+const { createAzureTokenProvider } = require('../auth/azure-token')
 
-const AZURE_POSTGRES_SCOPE = 'https://ossrdbms-aad.database.windows.net/.default'
 const PRODUCTION = 'production'
 const defaultPort = 5432
 const defaultPoolMin = 2
@@ -53,8 +52,7 @@ class Base {
       return { ...connection, password: this.password }
     }
 
-    const credential = new DefaultAzureCredential({ managedIdentityClientId: this.azureClientId })
-    const tokenProvider = getBearerTokenProvider(credential, AZURE_POSTGRES_SCOPE)
+    const tokenProvider = createAzureTokenProvider(this.azureClientId)
 
     return async () => ({ ...connection, password: await tokenProvider() })
   }

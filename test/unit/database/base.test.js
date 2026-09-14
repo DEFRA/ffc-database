@@ -1,9 +1,9 @@
 const knex = require('knex')
-const { DefaultAzureCredential, getBearerTokenProvider } = require('@azure/identity')
+const { createAzureTokenProvider } = require('../../../app/auth/azure-token')
 const Base = require('../../../app/database/base')
 
 jest.mock('knex')
-jest.mock('@azure/identity')
+jest.mock('../../../app/auth/azure-token')
 
 describe('Base', () => {
   let config
@@ -33,7 +33,7 @@ describe('Base', () => {
     })
 
     knex.mockReturnValue(mockClient)
-    getBearerTokenProvider.mockReturnValue(jest.fn().mockResolvedValue('a-token'))
+    createAzureTokenProvider.mockReturnValue(jest.fn().mockResolvedValue('a-token'))
   })
 
   afterEach(() => {
@@ -107,7 +107,7 @@ describe('Base', () => {
         password: 'pass',
         ssl: true
       })
-      expect(DefaultAzureCredential).not.toHaveBeenCalled()
+      expect(createAzureTokenProvider).not.toHaveBeenCalled()
     })
 
     test('returns a function when using managed identity', () => {
@@ -120,7 +120,7 @@ describe('Base', () => {
       const tokenProvider = jest.fn()
         .mockResolvedValueOnce('token-one')
         .mockResolvedValueOnce('token-two')
-      getBearerTokenProvider.mockReturnValue(tokenProvider)
+      createAzureTokenProvider.mockReturnValue(tokenProvider)
 
       const connection = new Base({ ...config, useAzureManagedIdentity: true, azureClientId: 'client-id' }).buildConnection()
 
@@ -129,14 +129,10 @@ describe('Base', () => {
       expect(tokenProvider).toHaveBeenCalledTimes(2)
     })
 
-    test('requests a token for the Azure Postgres scope using the configured client id', () => {
+    test('creates the token provider with the configured client id', () => {
       new Base({ ...config, useAzureManagedIdentity: true, azureClientId: 'client-id' }).buildConnection()
 
-      expect(DefaultAzureCredential).toHaveBeenCalledWith({ managedIdentityClientId: 'client-id' })
-      expect(getBearerTokenProvider).toHaveBeenCalledWith(
-        expect.anything(),
-        'https://ossrdbms-aad.database.windows.net/.default'
-      )
+      expect(createAzureTokenProvider).toHaveBeenCalledWith('client-id')
     })
   })
 
