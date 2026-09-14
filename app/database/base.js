@@ -9,7 +9,7 @@ const defaultPoolMax = 10
 const defaultAcquireTimeout = 60000
 const defaultIdleTimeout = 10000
 
-const reservedNames = ['client', 'transaction', 'close']
+const reservedNames = new Set(['client', 'transaction', 'close'])
 
 const isProd = () => {
   return process.env.NODE_ENV === PRODUCTION
@@ -30,7 +30,7 @@ class Base {
     this.tables = config.tables ?? {}
     this.dbConfig = config
 
-    const reserved = Object.keys(this.tables).filter(name => reservedNames.includes(name))
+    const reserved = Object.keys(this.tables).filter(name => reservedNames.has(name))
     if (reserved.length) {
       throw new Error(`Table accessors may not be named: ${reserved.join(', ')}`)
     }
