@@ -33,7 +33,7 @@ describe('Base', () => {
     })
 
     knex.mockReturnValue(mockClient)
-    createAzureTokenProvider.mockReturnValue(jest.fn().mockResolvedValue('a-token'))
+    createAzureTokenProvider.mockReturnValue(jest.fn().mockResolvedValue({ token: 'a-token', expiresOnTimestamp: Date.now() + 3600000 }))
   })
 
   afterEach(() => {
@@ -118,8 +118,8 @@ describe('Base', () => {
 
     test('resolves a fresh token as the password on every call', async () => {
       const tokenProvider = jest.fn()
-        .mockResolvedValueOnce('token-one')
-        .mockResolvedValueOnce('token-two')
+        .mockResolvedValueOnce({ token: 'token-one', expiresOnTimestamp: Date.now() + 3600000 })
+        .mockResolvedValueOnce({ token: 'token-two', expiresOnTimestamp: Date.now() + 3600000 })
       createAzureTokenProvider.mockReturnValue(tokenProvider)
 
       const connection = new Base({ ...config, useAzureManagedIdentity: true, azureClientId: 'client-id' }).buildConnection()
@@ -127,6 +127,22 @@ describe('Base', () => {
       await expect(connection()).resolves.toEqual(expect.objectContaining({ password: 'token-one' }))
       await expect(connection()).resolves.toEqual(expect.objectContaining({ password: 'token-two' }))
       expect(tokenProvider).toHaveBeenCalledTimes(2)
+    })
+
+    test('expiration checker reports not expired while the token is outside the refresh margin', async () => {
+      createAzureTokenProvider.mockReturnValue(jest.fn().mockResolvedValue({ token: 'a-token', expiresOnTimestamp: Date.now() + 10 * 60 * 1000 }))
+
+      const { expirationChecker } = await new Base({ ...config, useAzureManagedIdentity: true }).buildConnection()()
+
+      expect(expirationChecker()).toBe(false)
+    })
+
+    test('expiration checker reports expired once the token is within the refresh margin', async () => {
+      createAzureTokenProvider.mockReturnValue(jest.fn().mockResolvedValue({ token: 'a-token', expiresOnTimestamp: Date.now() + 4 * 60 * 1000 }))
+
+      const { expirationChecker } = await new Base({ ...config, useAzureManagedIdentity: true }).buildConnection()()
+
+      expect(expirationChecker()).toBe(true)
     })
 
     test('creates the token provider with the configured client id', () => {

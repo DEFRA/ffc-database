@@ -7,6 +7,7 @@ const defaultPoolMin = 2
 const defaultPoolMax = 10
 const defaultAcquireTimeout = 60000
 const defaultIdleTimeout = 10000
+const tokenRefreshMarginMs = 300000
 
 const reservedNames = new Set(['client', 'transaction', 'close'])
 
@@ -54,7 +55,14 @@ class Base {
 
     const tokenProvider = createAzureTokenProvider(this.azureClientId)
 
-    return async () => ({ ...connection, password: await tokenProvider() })
+    return async () => {
+      const { token, expiresOnTimestamp } = await tokenProvider()
+      return {
+        ...connection,
+        password: token,
+        expirationChecker: () => Date.now() >= expiresOnTimestamp - tokenRefreshMarginMs
+      }
+    }
   }
 
   buildPool () {
