@@ -7,7 +7,7 @@ const defaultPoolMin = 2
 const defaultPoolMax = 10
 const defaultAcquireTimeout = 60000
 const defaultIdleTimeout = 10000
-const tokenRefreshMarginMs = 5 * 60 * 1000
+const tokenRefreshMarginMs = 300000
 
 const reservedNames = new Set(['client', 'transaction', 'close'])
 
